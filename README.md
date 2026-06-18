@@ -1,25 +1,98 @@
-Krovna Systems Showcase
-
-This repository contains selected source code from Krovna, a Unity horror game built as a senior capstone project by a team at Drexel University. I served as UI Systems Lead Developer on the team.
-
-This is not a runnable project. Krovna depends on a full Unity project (scenes, prefabs, assets, and third-party packages) that isn't included here. This repo exists purely to showcase the architecture and implementation of the systems I personally designed and built. If you are interested in looking at the full game you can download it [here](https://silverandflamestudio.com/download.html)
-
-1. Systems I designed and implemented
-
-- PlayerScripts/
-First-person player controller, handling movement, camera look, sprinting, and raycast-based interaction detection for in-world objects and doors.
-
-- JournalUI/
-The in-game journal system, including lore entry data, the UI controller for browsing collected entries, and persistence logic so collected journal entries survive scene transitions and checkpoint loads.
-
-- InventoryItemScripts/
-The full inventory and item system: item data definitions, the in-world item objects, inventory UI and slot management, and the ritual paper item type that drives one of the game's core puzzle mechanics. Also includes RitualDrawingComparison.cs, the logic behind the ritual drawing minigame, and a tool (Editor/ItemDatabaseBuilder.cs) built to assign and manage stable item IDs used by the save/load system. See the README inside this folder for a deeper explanation of the Item vs. ItemObject data/GameObject split used throughout this system.
-
-- Shared systems
-Constants.cs, GameManager.cs, PauseMenuManager.cs, and UserInterface.cs are included at the repo root because the systems above reference them directly. These files show contributions from multiple team members over the course of development, not solely my own work, so I'm not claiming authorship of them. They're here so the code above makes sense in context. For example, GameManager.cs contains the checkpoint save/load logic that the inventory and journal systems hook into.
-
-2. Design constraints
-One real constraint that shaped these systems: several teammates were prone to manual data-entry mistakes (typos in string keys, mismatched IDs, etc.). Where possible, I favored direct GameObject and asset references over string-keyed lookups, and built the ItemDatabaseBuilder editor tool specifically to reduce opportunities for that kind of error when assigning item IDs.
-
-3. Team context
-Krovna was built by a small team of 15 people consist of both CCI and DIGM team members from Drexel University. Other systems in the full game, including enemy AI, audio, level design, and additional UI, were built by teammates and aren't included in this repository.
+# Krovna Systems Showcase
+ 
+A curated selection of C# scripts I authored for **Krovna**, a first-person Unity horror game built as a senior capstone project at Drexel University. I served as **UI Systems Lead** on the team.
+ 
+> This is not a runnable project. Krovna depends on a full Unity project — scenes, prefabs, assets, and third-party packages — that isn't included here. This repo exists to showcase the architecture and implementation of systems I personally designed and built.
+ 
+---
+ 
+## Systems I Designed
+ 
+### Player Controller: `PlayerScripts/`
+ 
+First-person player controller built on Unity's Input System and `CharacterController`.
+ 
+- **`PlayerMovement.cs`**: Handles movement, sprinting, camera look with clamped vertical rotation, and raycast-based interaction detection for in-world objects and doors. Implemented as a singleton that persists across scene loads.
+---
+ 
+### Journal System: `JournalUI/`
+ 
+An in-game journal that tracks lore entries collected throughout the game and persists state across scene transitions and checkpoint reloads.
+ 
+| File | Responsibility |
+|---|---|
+| `LoreEntry.cs` | Scriptable Object defining a lore entry (title, text, image) |
+| `LoreJournal.cs` | Static singleton managing the collection of discovered entries |
+| `JournalManager.cs` | Coordinates journal open/close state with the broader UI system |
+| `JournalUIController.cs` | Drives the journal UI panel and populates entry displays |
+| `JournalSlot.cs` | Individual slot component for a single journal entry in the list |
+ 
+---
+ 
+### Inventory & Item System: `InventoryItemScripts/`
+ 
+The inventory items and UI system of the game. Items exist as two parallel representations: a pure data class (`Item`) for serialization and inventory logic, and a `MonoBehaviour`-based `ItemObject` for in-scene interaction. This is because Unity MonoBehaviours cannot be instantiated as plain data objects, so keeping the two seperate is a more straightforward solution.
+ 
+#### Data / Item Types: `ItemsScripts/`
+ 
+| File | Responsibility |
+|---|---|
+| `Item.cs` / `ItemObject.cs` | Base classes for the parallel data/GameObject model |
+| `HealingItem.cs` / `HealingItemObject.cs` | Consumable healing items |
+| `LoreItem.cs` / `LoreItemObject.cs` | Collectible lore documents |
+| `StoryItem.cs` / `StoryItemObject.cs` | Key story items |
+| `RitualPaperItem.cs` / `RitualPaperItemObject.cs` | Ritual puzzle items (see minigame below) |
+ 
+#### Inventory Management
+ 
+| File | Responsibility |
+|---|---|
+| `InventoryManager.cs` | Manages the data-side inventory; handles item use, removal, and serialization for checkpoint save/load |
+| `ItemObjectManager.cs` | Manages the GameObject-side; tracks which item objects have been picked up so they can be correctly respawned on checkpoint reload |
+| `ItemDatabase.cs` | Centralized registry of all items by stable ID |
+| `InteractableItem.cs` | In-world item component the player raycasts against to pick up |
+ 
+#### Inventory UI
+ 
+| File | Responsibility |
+|---|---|
+| `InventoryUI.cs` | Main inventory panel controller |
+| `InventoryItemSlot.cs` | Individual slot component in the inventory grid |
+| `ItemButtonEffect.cs` | Hover/click visual feedback on inventory slots |
+| `UIHoverEffect.cs` | Reusable hover animation component |
+ 
+#### Ritual Drawing Minigame
+ 
+| File | Responsibility |
+|---|---|
+| `RitualDrawingComparison.cs` | Compares a player's drawn symbol against a target ritual pattern to determine match accuracy, driving one of the game's core puzzle mechanics |
+ 
+#### Editor Tool
+ 
+| File | Responsibility |
+|---|---|
+| `Editor/ItemDatabaseBuilder.cs` | Custom Unity Editor window for assigning and managing stable item IDs across the database; built to reduce human error from manual ID entry during team development |
+ 
+---
+ 
+## Shared Systems (Included for Context)
+ 
+The following files at the repo root are referenced by the systems above but reflect contributions from multiple team members. I chose to include these for additional context to the systems I implemented. I'm not claiming sole authorship of these.
+ 
+| File | Purpose |
+|---|---|
+| `GameManager.cs` | Central game state manager; handles checkpoint save/load, spell state, room shuffling, and scene transitions |
+| `UserInterface.cs` | Master UI controller coordinating all panels (inventory, journal, pause, dialogue, etc.) |
+| `PauseMenuManager.cs` | Pause menu logic and settings |
+| `Constants.cs` | Shared game constants (move speed, gravity, etc.) |
+ 
+---
+ 
+## Team Context
+ 
+Krovna was built by a 15-person team of CCI and DIGM students at Drexel University as a senior capstone project. Other systems in the full game — enemy AI, audio, level design, spells, and dialogue — were built by teammates and are not included here.
+ 
+- [Studio Website](https://silverandflamestudio.com/)
+- [Team Members](https://silverandflamestudio.com/team.html)
+- [Game Info & Press Kit](https://silverandflamestudio.com/presskit/index.html)
+- [Download the Game](https://silverandflamestudio.com/download.html)
